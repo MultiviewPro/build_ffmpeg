@@ -21,8 +21,8 @@ GPU video test, with a compatible NVIDIA driver installed:
 
 ## Windows PowerShell
 
-Copy `ffmpeg.exe` and `ffprobe.exe` from the Windows output directory to Windows,
-then run from that folder:
+Copy `ffmpeg.exe`, `ffprobe.exe`, `ffplay.exe` and required dependency DLLs from
+the Windows output directory to Windows, then run from that folder:
 
 ```powershell
 .\ffmpeg.exe -version
@@ -68,3 +68,8 @@ intended GPU was selected and processing did not fall back to CPU. Use
 
 No model is bundled in the Git repository or embedded in FFmpeg. No Windows GPU
 runtime validation is performed by the Linux build script.
+
+## Playback
+
+Run `ffplay input.mp4` (or `.\ffplay.exe input.mp4` on Windows) in a desktop
+session. `ffplay -version` verifies the executable without opening a window.
