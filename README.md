@@ -200,7 +200,11 @@ compiler as the dependency bundle.
 
 MXE verifies its downloaded source archives against its recipe checksums.
 Supplementary repositories and MXE itself are fixed to exact Git commits in
-`lib/windows-deps.sh`. Recipe changes create a new dependency cache. Successful
+`lib/windows-deps.sh`. The libssh recipe uses its official versioned release
+archive with a pinned SHA-256, avoiding the mutable Git snapshot archive.
+The explicit cache compatibility revision preserves completed libraries across
+download-only fixes; compiler, library version, ABI or build-option changes must
+bump that revision. Successful
 library installs are stamped; failed ones retry on the next invocation.
 `--jobs` controls compilation parallelism; dependency packages build sequentially.
 Source revisions are recorded in `dependency-build-info.txt` beside the binaries.

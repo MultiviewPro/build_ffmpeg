@@ -19,6 +19,10 @@ build_windows_extra() {
 build_windows_dependencies
 [[ "$(wc -l < "$scratch/recipes")" == "${#WINDOWS_EXTRA_NAMES[@]}" ]]
 dep_cache="$(windows_dependency_root)"
+[[ "$dep_cache" == "$BUILD_ROOT/build/windows-deps/852ea558f59f195b" ]]
+grep -q 'libssh_FILE=libssh-0.12.2.tar.xz' "$scratch/commands"
+grep -q 'libssh_URL=https://www.libssh.org/files/0.12/libssh-0.12.2.tar.xz' "$scratch/commands"
+grep -q 'libssh_CHECKSUM=49560f677d96e3706a904ac2de1116e25f3680937d51e5c92198fcba4a1c1e9f' "$scratch/commands"
 [[ -f "$dep_cache/mxe/usr/$MXE_TARGET/dependency-build-info.txt" ]]
 grep -q 'MXE_TARGETS=x86_64-w64-mingw32.static' "$scratch/commands"
 grep -q 'JOBS=2' "$scratch/commands"

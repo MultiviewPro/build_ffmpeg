@@ -29,10 +29,21 @@ declare -A WINDOWS_EXTRA_COMMIT=(
   [zmq]=622fc6dde99ee172ebaa9c8628d85a7a1995a21d
 )
 
+# Cache compatibility revision: keep the original cache for download-only fixes.
+# Bump this when compiler/library versions, ABI, or build options change.
+WINDOWS_DEPS_CACHE_REVISION=852ea558f59f195b
+# Git snapshot tarballs can change bytes. Use the versioned release archive.
+MXE_DOWNLOAD_OVERRIDES=(
+  # OpenAL 1.25 requires C++ library features absent from MXE's GCC 11.
+  openal_VERSION=1.23.1
+  openal_CHECKSUM=796f4b89134c4e57270b7f0d755f0fa3435b90da437b745160a49bd41c845b21
+  libssh_FILE=libssh-0.12.2.tar.xz
+  libssh_URL=https://www.libssh.org/files/0.12/libssh-0.12.2.tar.xz
+  libssh_CHECKSUM=49560f677d96e3706a904ac2de1116e25f3680937d51e5c92198fcba4a1c1e9f
+)
+
 windows_dependency_root() {
-  local digest
-  digest="$(sha256sum "$PROJECT_DIR/lib/windows-deps.sh")"
-  printf '%s/build/windows-deps/%s\n' "$BUILD_ROOT" "${digest:0:16}"
+  printf '%s/build/windows-deps/%s\n' "$BUILD_ROOT" "$WINDOWS_DEPS_CACHE_REVISION"
 }
 
 windows_dependency_tools() {
@@ -77,7 +88,7 @@ build_windows_dependencies() (
     CPLUS_INCLUDE_PATH LIBRARY_PATH PKG_CONFIG_PATH PKG_CONFIG_LIBDIR PKG_CONFIG_SYSROOT_DIR
   log "Building Windows toolchain and libraries with MXE (cached in $dep_root)"
   run make -C "$mxe" "MXE_TARGETS=$MXE_TARGET" "JOBS=$JOBS" check-requirements
-  run make -C "$mxe" -j1 "MXE_TARGETS=$MXE_TARGET" "JOBS=$JOBS" "${MXE_PACKAGES[@]}"
+  run make -C "$mxe" -j1 "MXE_TARGETS=$MXE_TARGET" "JOBS=$JOBS" "${MXE_DOWNLOAD_OVERRIDES[@]}" "${MXE_PACKAGES[@]}"
   export PATH="$mxe/usr/bin:$PATH"
   export PKG_CONFIG_LIBDIR="$dep_prefix/lib/pkgconfig:$dep_prefix/share/pkgconfig" PKG_CONFIG_PATH=
   export CC="${dep_cross}gcc" CXX="${dep_cross}g++" AR="${dep_cross}ar" RANLIB="${dep_cross}ranlib"
@@ -126,6 +137,7 @@ MESON
   done
   {
     printf 'MXE: %s\nTarget: %s\n' "$MXE_COMMIT" "$MXE_TARGET"
+    printf '%s\n' "${MXE_DOWNLOAD_OVERRIDES[@]}"
     for name in "${WINDOWS_EXTRA_NAMES[@]}"; do printf '%s: %s\n' "$name" "${WINDOWS_EXTRA_COMMIT[$name]}"; done
   } > "$dep_prefix/dependency-build-info.txt"
 )
