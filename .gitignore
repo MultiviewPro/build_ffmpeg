@@ -1,0 +1,10 @@
+# Build data belongs under $HOME/build, not this checkout.
+/build/
+/output/
+/sources/
+*.log
+*.exe
+*.dll
+*.o
+*.obj
+__pycache__/
