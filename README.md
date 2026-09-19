@@ -12,38 +12,19 @@ password. Only missing tools trigger package installation. `--plan`,
 `--check-deps`, and `clean` never install packages. An explicit
 `WINDOWS_DEPS_PREFIX` keeps host setup manual.
 
-For manual setup, or to prepare a machine in advance:
-
-```bash
-sudo apt-get update
-sudo apt-get install -y build-essential git nasm pkg-config cmake glslc \
-  meson ninja-build autoconf automake autopoint libtool libtool-bin gettext \
-  bison flex gperf intltool lzip python3-mako python3 python-is-python3 \
-  ruby perl wget curl unzip p7zip-full libgdk-pixbuf2.0-bin patch bzip2 xz-utils
-```
-
-`./build.sh windows` then builds its own MinGW-w64 toolchain and Windows libraries
+"./build.sh windows" then builds its own MinGW-w64 toolchain and Windows libraries
 under the build root. No Windows development libraries need to be installed
 system-wide. The first run requires substantial time and disk space; later runs
 reuse completed dependency builds. Run without `sudo`.
 
-For native Linux builds, also install the target development libraries:
-
-```bash
-sudo apt-get install -y libvulkan1 libsdl2-dev libaom-dev libass-dev libfdk-aac-dev \
-  libfreetype-dev libfontconfig-dev libfribidi-dev libharfbuzz-dev libcaca-dev \
-  frei0r-plugins-dev libgmp-dev libmp3lame-dev libopus-dev libvorbis-dev \
-  libvpx-dev libx265-dev libsrt-openssl-dev libzvbi-dev libzmq3-dev \
-  libssh-dev libopenal-dev ocl-icd-opencl-dev libgl-dev libdrm-dev \
-  libssl-dev libsmbclient-dev
-```
+`./build.sh linux` installs development libraries and compiles native Linux builds. (Builds only; user must install to the system manually.)
 
 Run as your normal user:
 
 ```bash
 ./build.sh linux                 # native Linux
 ./build.sh windows               # Windows x64
-./build.sh all --jobs 16          # both, sequentially
+./build.sh all --jobs 16         # both, sequentially
 ./build.sh all --plan            # resolve versions without compiling
 ./build.sh --help
 ```
@@ -63,14 +44,14 @@ Everything generated is outside the Git checkout, under
 ```text
 $HOME/build/build_ffmpeg/
   sources/<project>/<commit>/      # shared source checkouts
-  build/<target>-<arch>/<id>/       # objects, dependency prefix, installed output
-  build/windows-deps/<id>/          # automatic MXE toolchain and library cache
-  output/linux/                   # symlink to last successful native build
-  output/windows/                 # symlink to last successful Windows build
-  logs/                           # separate log for each invocation
-  tmp/                            # temporary compiler/configure files
-  tools/                          # optional local host tools
-  legacy/                         # preserved files from the original workspace
+  build/<target>-<arch>/<id>/      # objects, dependency prefix, installed output
+  build/windows-deps/<id>/         # automatic MXE toolchain and library cache
+  output/linux/                    # symlink to last successful native build
+  output/windows/                  # symlink to last successful Windows build
+  logs/                            # separate log for each invocation
+  tmp/                             # temporary compiler/configure files
+  tools/                           # optional local host tools
+  legacy/                          # preserved files from the original workspace
 ```
 
 Executables:

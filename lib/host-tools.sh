@@ -39,3 +39,35 @@ install_windows_host_tools() {
     host_tool_available "$tool" || die "Package installation finished but $tool is still unavailable on PATH"
   done
 }
+install_linux_host_tools() {
+  local packages=(
+    libvulkan1 libsdl2-dev libaom-dev libass-dev libfdk-aac-dev
+    libfreetype-dev libfontconfig-dev libfribidi-dev libharfbuzz-dev libcaca-dev
+    frei0r-plugins-dev libgmp-dev libmp3lame-dev libopus-dev libvorbis-dev
+    libvpx-dev libx265-dev libsrt-openssl-dev libzvbi-dev libzmq3-dev
+    libssh-dev libopenal-dev ocl-icd-opencl-dev libgl-dev libdrm-dev
+    libssl-dev libsmbclient-dev nvidia-cuda-toolkit
+  )
+
+  local privilege=()
+  host_tool_available apt-get || die "Automatic installation requires apt-get; install missing packages using your distribution's package manager (see README.md)"
+
+  if [[ "$(id -u)" != 0 ]]; then
+    host_tool_available sudo || die "Install required packages as administrator: ${packages[*]} (sudo is unavailable)"
+    privilege=(sudo)
+  fi
+
+  printf 'Installing Linux host build dependencies and CUDA toolkit...\n'
+  "${privilege[@]}" apt-get update || die 'Could not refresh apt package lists; fix the apt/sudo error and rerun the build'
+  "${privilege[@]}" apt-get install -y --no-install-recommends "${packages[@]}" || die 'Could not install Linux host dependencies; fix the apt/sudo error and rerun the build'
+
+  # Standardize CUDA directory layout for Ubuntu/Debian system paths
+  if [[ ! -d /usr/local/cuda ]]; then
+    printf 'Creating standard /usr/local/cuda symlinks for CUDA headers and libraries...\n'
+    "${privilege[@]}" mkdir -p /usr/local/cuda
+    "${privilege[@]}" ln -s /usr/include /usr/local/cuda/include
+    "${privilege[@]}" ln -s /usr/lib/x86_64-linux-gnu /usr/local/cuda/lib64
+  fi
+
+  hash -r
+}

@@ -137,6 +137,13 @@ feature_flags() {
 preflight_target() (
   local target="$1" deps="${LINUX_DEPS_PREFIX:-}"
   [[ "$target" != windows ]] || deps="${WINDOWS_DEPS_PREFIX:-}"
+  
+  if [[ "$target" == linux ]]; then
+    if (( CHECK_DEPS == 0 )); then
+      install_linux_host_tools
+    fi
+  fi
+
   if [[ "$target" == windows && -z "$deps" ]]; then
     deps="$(windows_dependency_root)/mxe/usr/$MXE_TARGET"
     if (( CHECK_DEPS == 0 )); then
@@ -278,7 +285,8 @@ build_target() (
       export PATH="$cuda_path/bin:$PATH"
       require_tools nvcc
       [[ -f "$cuda_path/include/npp.h" ]] || die "Missing NPP headers in $cuda_path; set CUDA_PATH to the toolkit root"
-      gpu_flags+=(--enable-cuda-nvcc --enable-libnpp)
+      gpu_flags+=(--enable-cuda-nvcc)
+      #  --enable-libnpp
       export CPPFLAGS="-I$cuda_path/include"
       ldflags+=" -L$cuda_path/lib64"
     else
