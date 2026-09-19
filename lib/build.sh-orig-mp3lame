@@ -121,14 +121,13 @@ feature_flags() {
     --enable-ffplay --enable-sdl2 --enable-swresample
     --enable-libaom --enable-libass --enable-libfdk-aac --enable-libfreetype
     --enable-libfontconfig --enable-libfribidi --enable-libharfbuzz
-    --enable-libcaca --enable-frei0r --enable-gmp
+    --enable-libcaca --enable-frei0r --enable-gmp --enable-libmp3lame
     --enable-libopus --enable-libvorbis --enable-libvpx --enable-libx264
     --enable-libx265 --enable-libsrt --enable-libsvtjpegxs --enable-libzvbi
     --enable-libzmq --enable-libssh --enable-openal --enable-opencl
-    --enable-opengl --enable-libvmaf)
-    ## --enable-libmp3lame
+    --enable-opengl --enable-openssl --enable-libvmaf)
   if [[ "$1" == linux ]]; then
-    FEATURE_FLAGS+=(--enable-libdrm --enable-libsmbclient --enable-openssl) 
+    FEATURE_FLAGS+=(--enable-libdrm --enable-libsmbclient)
   else
     FEATURE_FLAGS+=(--disable-libdrm --disable-libsmbclient)
   fi
