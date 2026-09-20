@@ -46,7 +46,7 @@ install_linux_host_tools() {
     frei0r-plugins-dev libgmp-dev libmp3lame-dev libopus-dev libvorbis-dev
     libvpx-dev libx265-dev libsrt-openssl-dev libzvbi-dev libzmq3-dev
     libssh-dev libopenal-dev ocl-icd-opencl-dev libgl-dev libdrm-dev
-    libssl-dev libsmbclient-dev nvidia-cuda-toolkit
+    libssl-dev libsmbclient-dev nvidia-cuda-toolkit glslc
   )
 
   local privilege=()
