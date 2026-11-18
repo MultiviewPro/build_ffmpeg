@@ -36,6 +36,8 @@ declare -A WINDOWS_EXTRA_COMMIT=(
 WINDOWS_DEPS_CACHE_REVISION=852ea558f59f195b
 # Git snapshot tarballs can change bytes. Use the versioned release archive.
 MXE_DOWNLOAD_OVERRIDES=(
+  # VideoLAN mirrors the same release archive and checksum as the MXE recipe.
+  x265_URL=https://downloads.videolan.org/pub/videolan/x265/x265_4.1.tar.gz
   # OpenAL 1.25 requires C++ library features absent from MXE's GCC 11.
   openal_VERSION=1.23.1
   openal_CHECKSUM=796f4b89134c4e57270b7f0d755f0fa3435b90da437b745160a49bd41c845b21

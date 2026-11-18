@@ -20,6 +20,7 @@ build_windows_dependencies
 [[ "$(wc -l < "$scratch/recipes")" == "${#WINDOWS_EXTRA_NAMES[@]}" ]]
 dep_cache="$(windows_dependency_root)"
 [[ "$dep_cache" == "$BUILD_ROOT/build/windows-deps/852ea558f59f195b" ]]
+grep -q 'x265_URL=https://downloads.videolan.org/pub/videolan/x265/x265_4.1.tar.gz' "$scratch/commands"
 grep -q 'libssh_FILE=libssh-0.12.2.tar.xz' "$scratch/commands"
 grep -q 'libssh_URL=https://www.libssh.org/files/0.12/libssh-0.12.2.tar.xz' "$scratch/commands"
 grep -q 'libssh_CHECKSUM=49560f677d96e3706a904ac2de1116e25f3680937d51e5c92198fcba4a1c1e9f' "$scratch/commands"

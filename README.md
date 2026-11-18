@@ -188,7 +188,8 @@ compiler as the dependency bundle.
 MXE verifies its downloaded source archives against its recipe checksums.
 Supplementary repositories and MXE itself are fixed to exact Git commits in
 `lib/windows-deps.sh`. The libssh recipe uses its official versioned release
-archive with a pinned SHA-256, avoiding the mutable Git snapshot archive.
+archive with a pinned SHA-256, avoiding the mutable Git snapshot archive. The
+x265 release archive is fetched from VideoLAN and checked against MXE's pinned SHA-256.
 The explicit cache compatibility revision preserves completed libraries across
 download-only fixes; compiler, library version, ABI or build-option changes must
 bump that revision. Successful
