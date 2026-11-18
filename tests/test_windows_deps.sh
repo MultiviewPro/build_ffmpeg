@@ -92,6 +92,8 @@ printf 'PASS: automatic Windows bootstrap, resume cache, failed-step retry, pref
   build_target windows
   grep -qx -- "--cross-prefix=$MXE_TARGET-" "$scratch/windows-configure"
   grep -qx -- '--prefix=/ffmpeg' "$scratch/windows-configure"
+  grep -qx -- '--enable-libvpl' "$scratch/windows-configure"
+  if grep -qxE -- '--enable-(nonfree|libfdk-aac)' "$scratch/windows-configure"; then exit 1; fi
   [[ -f "$BUILD_ROOT/output/windows/bin/ffplay.exe" ]]
   grep -qx 'MXE: test' "$BUILD_ROOT/output/windows/dependency-build-info.txt"
 )

@@ -3,10 +3,11 @@
 # Supplementary sources are pinned to commits, not moving branches/tags.
 MXE_COMMIT=215428bf6f9c4e634f2fb827849a9c027dfe950a
 MXE_TARGET=x86_64-w64-mingw32.static
-MXE_PACKAGES=(cc cmake libass fdk-aac freetype fontconfig fribidi harfbuzz
+MXE_PACKAGES=(cc cmake libass freetype fontconfig fribidi harfbuzz
   libcaca gmp lame opus vorbis libvpx x265 libssh openal openssl sdl2 libpng libiconv)
-WINDOWS_EXTRA_NAMES=(aom srt svtjpegxs zvbi frei0r vmaf opencl-headers opencl-loader zmq)
+WINDOWS_EXTRA_NAMES=(aom srt svtjpegxs zvbi frei0r vmaf opencl-headers opencl-loader zmq onevpl)
 declare -A WINDOWS_EXTRA_URL=(
+  [onevpl]=https://github.com/oneapi-src/oneVPL.git
   [aom]=https://aomedia.googlesource.com/aom
   [srt]=https://github.com/Haivision/srt.git
   [svtjpegxs]=https://github.com/OpenVisualCloud/SVT-JPEG-XS.git
@@ -18,6 +19,7 @@ declare -A WINDOWS_EXTRA_URL=(
   [zmq]=https://github.com/zeromq/libzmq.git
 )
 declare -A WINDOWS_EXTRA_COMMIT=(
+  [onevpl]=c45b5d786bf7cdabbe49ff1bab78693ad78feb78
   [aom]=10aece4157eb79315da205f39e19bf6ab3ee30d0
   [srt]=a8c6b65520f814c5bd8f801be48c33ceece7c4a6
   [svtjpegxs]=f9c82c12beed453980ef1888a5e72923b7265ed4
@@ -154,6 +156,7 @@ windows_cmake_library() {
 
 build_windows_extra() {
   case "$1" in
+    onevpl) windows_cmake_library -DBUILD_EXAMPLES=OFF -DBUILD_TESTS=OFF ;;
     aom) windows_cmake_library -DENABLE_TESTS=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TOOLS=OFF -DENABLE_DOCS=OFF ;;
     srt) windows_cmake_library -DENABLE_SHARED=OFF -DENABLE_STATIC=ON -DENABLE_APPS=OFF -DUSE_ENCLIB=openssl ;;
     svtjpegxs) windows_cmake_library -DBUILD_APPS=OFF -DENABLE_NASM=ON -DJPEGXS_LTO=OFF "-DCMAKE_OUTPUT_DIRECTORY=$work/bin" ;;

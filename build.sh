@@ -10,9 +10,9 @@ source "$PROJECT_DIR/lib/host-tools.sh"
 
 usage() {
   cat <<'HELP'
-Usage: ./build.sh {linux|windows|all|clean} [options]
+Usage: ./build.sh [linux|windows|all|clean] [options]
 
-  linux                  Build for the native Linux architecture
+  linux                  Build and install for the native Linux architecture (default)
   windows                Cross-compile for Windows x64 with MinGW-w64
   all                    Build both targets, sequentially
   clean                  Remove build trees, sources, outputs, logs and temporary files
@@ -35,10 +35,11 @@ HELP
 }
 
 main() {
-  [[ $# -gt 0 ]] || { usage; return 0; }
-  case "$1" in
+  TARGET=linux
+  case "${1:-}" in
     -h|--help) usage; return 0 ;;
     linux|windows|all|clean) TARGET="$1"; shift ;;
+    ""|--*) ;;
     *) die "Expected linux, windows, all, or clean; use --help" ;;
   esac
   JOBS="${BUILD_JOBS:-$(nproc)}"

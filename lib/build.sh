@@ -117,18 +117,18 @@ checkout_sources() {
 
 # All common requested features are explicit: missing libraries fail configuration.
 feature_flags() {
-  FEATURE_FLAGS=(--enable-gpl --enable-nonfree --enable-version3
+  FEATURE_FLAGS=(--enable-gpl --enable-version3
     --enable-ffplay --enable-sdl2 --enable-swresample
-    --enable-libaom --enable-libass --enable-libfdk-aac --enable-libfreetype
+    --enable-libaom --enable-libass --enable-libfreetype
     --enable-libfontconfig --enable-libfribidi --enable-libharfbuzz
     --enable-libcaca --enable-frei0r --enable-gmp
     --enable-libopus --enable-libvorbis --enable-libvpx --enable-libx264
     --enable-libx265 --enable-libsrt --enable-libsvtjpegxs --enable-libzvbi
     --enable-libzmq --enable-libssh --enable-openal --enable-opencl
-    --enable-opengl --enable-libvmaf)
+    --enable-opengl --enable-libvmaf --enable-libvpl)
     ## --enable-libmp3lame
   if [[ "$1" == linux ]]; then
-    FEATURE_FLAGS+=(--enable-libdrm --enable-libsmbclient --enable-openssl) 
+    FEATURE_FLAGS+=(--enable-nonfree --enable-libfdk-aac --enable-libdrm --enable-libsmbclient --enable-openssl)
   else
     FEATURE_FLAGS+=(--disable-libdrm --disable-libsmbclient)
   fi
@@ -137,7 +137,7 @@ feature_flags() {
 preflight_target() (
   local target="$1" deps="${LINUX_DEPS_PREFIX:-}"
   [[ "$target" != windows ]] || deps="${WINDOWS_DEPS_PREFIX:-}"
-  
+
   if [[ "$target" == linux ]]; then
     if (( CHECK_DEPS == 0 )); then
       install_linux_host_tools
@@ -168,10 +168,10 @@ preflight_target() (
 
 check_external_dependencies() {
   local package
-  local packages=(aom libass fdk-aac freetype2 fontconfig fribidi harfbuzz
+  local packages=(aom libass freetype2 fontconfig fribidi harfbuzz
     caca frei0r gmp opus vorbis vorbisenc vpx x265 srt 'SvtJpegxs >= 0.10.0'
-    zvbi-0.2 libzmq libssh openal OpenCL openssl libvmaf 'sdl2 >= 2.0.1' 'sdl2 < 3.0.0')
-  [[ "$target" != linux ]] || packages+=(libdrm smbclient)
+    zvbi-0.2 libzmq libssh openal OpenCL openssl libvmaf 'sdl2 >= 2.0.1' 'sdl2 < 3.0.0' vpl)
+  [[ "$target" != linux ]] || packages+=(fdk-aac libdrm smbclient)
   local missing=()
   for package in "${packages[@]}"; do
     pkg-config --exists "$package" || missing+=("$package")
@@ -222,11 +222,12 @@ build_target() (
   if (( PLAN )); then
     log "Plan: $target/$arch, Whisper=$WHISPER_BACKEND, NVIDIA=$NVIDIA, root=$BUILD_ROOT"
     log "Features: ${FEATURE_FLAGS[*]}"
+    [[ "$target" != linux ]] || log "Install: /bin/ffmpeg /bin/ffprobe /bin/ffplay"
     if (( managed_windows )); then
       log "Automatic Windows dependencies: MXE $MXE_COMMIT; ${MXE_PACKAGES[*]}; ${WINDOWS_EXTRA_NAMES[*]}"
     fi
     if [[ "$target" == windows ]]; then
-      log 'Windows exceptions: libdrm, libsmbclient, cuda-nvcc and libnpp (Linux-hosted MinGW build)'
+      log 'Windows exceptions: nonfree, libfdk-aac, libdrm, libsmbclient, cuda-nvcc and libnpp (Linux-hosted MinGW build)'
     elif (( NVIDIA )); then
       log 'CUDA toolkit features: --enable-cuda-nvcc --enable-libnpp'
     fi
@@ -347,6 +348,9 @@ build_target() (
   ln -s "$output" "$BUILD_ROOT/output/.$target-$$"
   mv -Tf "$BUILD_ROOT/output/.$target-$$" "$BUILD_ROOT/output/$target"
   log "Ready: $BUILD_ROOT/output/$target/bin/ffmpeg$suffix"
+  if [[ "$target" == linux ]]; then
+    install_linux_binaries "$output/bin"
+  fi
 )
 
 build_whisper() {
@@ -410,4 +414,19 @@ Version: $version
 Libs: -L$prefix/lib -Wl,--start-group $archive_libs $vulkan_libs -Wl,--end-group $runtime_libs
 Cflags: -I$prefix/include
 PC
+}
+
+# Install only the validated programs, matching FFmpeg's --bindir=/bin.
+install_linux_binaries() {
+  local bin_dir="$1" binary
+  local privilege=()
+  if [[ "$(id -u)" != 0 ]]; then
+    require_tools sudo
+    privilege=(sudo)
+  fi
+  log 'Installing ffmpeg, ffprobe and ffplay to /bin'
+  for binary in ffmpeg ffprobe ffplay; do
+    "${privilege[@]}" install -m 755 -- "$bin_dir/$binary" "/bin/$binary"
+  done
+  hash -r
 }

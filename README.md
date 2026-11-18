@@ -17,22 +17,24 @@ under the build root. No Windows development libraries need to be installed
 system-wide. The first run requires substantial time and disk space; later runs
 reuse completed dependency builds. Run without `sudo`.
 
-`./build.sh linux` installs development libraries and compiles native Linux builds. (Builds only; user must install to the system manually.)
+`./build.sh` builds for the native Linux architecture and installs ffmpeg,
+ffprobe and ffplay to `/bin` using sudo after validation. Existing binaries at
+those paths are replaced. On merged-usr systems `/bin` resolves to `/usr/bin`.
 
 Run as your normal user:
 
 ```bash
-./build.sh linux                 # native Linux
+./build.sh                       # native Linux, then install to /bin
+./build.sh linux                 # explicit native Linux target
 ./build.sh windows               # Windows x64
 ./build.sh all --jobs 16         # both, sequentially
 ./build.sh all --plan            # resolve versions without compiling
 ./build.sh --help
 ```
 
-With no arguments, the script displays help. FFmpeg and its built libraries stay
-under the build root. The prerequisite step
-installs distribution packages system-wide through apt; it does not install
-FFmpeg system-wide. A GPU is not needed to compile.
+With no arguments, the script builds and installs the Linux target. Generated
+build files remain under the build root. The prerequisite step installs
+distribution packages system-wide through apt. A GPU is not needed to compile.
 The native target uses the host Linux architecture; Windows always targets x64.
 Ubuntu x86-64 is the tested host configuration.
 
@@ -153,10 +155,10 @@ A Whisper model is a separate download. See [GPU tests and transcription](docs/u
 
 ## External libraries and platform limits
 
-The common configuration enables aom, ass, fdk-aac, freetype, fontconfig,
+The common configuration enables aom, ass, freetype, fontconfig,
 fribidi, harfbuzz, caca, frei0r, GMP, mp3lame, opus, vorbis, vpx, x264,
 x265, SRT, SVT-JPEG-XS, zvbi, zmq, ssh, OpenAL, OpenCL, OpenGL, OpenSSL,
-VMAF, swresample and SDL2/ffplay, plus GPL, nonfree and version3.
+VMAF, Intel oneVPL/QSV, swresample and SDL2/ffplay, plus GPL and version3. Linux also enables nonfree and FDK AAC.
 Whisper remains enabled by default, with the existing CPU/off overrides.
 Missing dependencies cause a build failure; features are not silently dropped.
 
@@ -164,7 +166,11 @@ For native Linux, the builder compiles x264 and Whisper itself. Install the othe
 development libraries first. SVT-JPEG-XS (pkg-config `SvtJpegxs >= 0.10.0`) and VMAF
 may need separate installation if your distribution does not package them.
 Package availability, especially FDK AAC, depends on enabled repositories.
-Set `LINUX_DEPS_PREFIX=/absolute/prefix` for additional native libraries.
+Install oneVPL development files (`libvpl-dev` on Ubuntu), and set
+`LINUX_DEPS_PREFIX=/absolute/prefix` for additional native libraries. Intel Quick
+Sync HEVC encoding uses `-c:v hevc_qsv` and requires a compatible Intel GPU,
+graphics driver and media runtime on the target system; the oneVPL dispatcher
+alone does not provide hardware acceleration. See [QSV examples](docs/usage.md).
 
 Linux also enables libdrm, libsmbclient, CUDA NVCC and NPP. Install the CUDA
 toolkit including NPP headers/libraries; `CUDA_PATH` defaults to
@@ -173,7 +179,7 @@ toolkit including NPP headers/libraries; `CUDA_PATH` defaults to
 
 Windows dependencies are built automatically using a pinned revision of
 [MXE](https://mxe.cc/) for the compiler and common static libraries, plus pinned
-source recipes for AOM, SRT, SVT-JPEG-XS, ZVBI, ZeroMQ, VMAF and OpenCL.
+source recipes for AOM, SRT, SVT-JPEG-XS, ZVBI, ZeroMQ, VMAF, OpenCL and oneVPL.
 The frei0r API header is installed; effect DLLs are runtime plugins and must be
 supplied separately. OpenGL comes from the MinGW Windows SDK/import libraries.
 All required common features remain enabled. Whisper and x264 use the same
@@ -302,5 +308,6 @@ reports. Cleanup is explicit through `./build.sh clean`; normal builds retain ol
 - [Whisper Vulkan support](https://github.com/ggml-org/whisper.cpp#vulkan-gpu-support)
 - [Khronos Vulkan SDK components](https://github.com/KhronosGroup/Vulkan-Headers)
 
-The requested `--enable-nonfree` combination makes the resulting FFmpeg build
-non-redistributable. Use it privately; it is not a distributable GPL build.
+The Linux build enables `--enable-nonfree` and is not redistributable. Windows
+omits nonfree and FDK AAC, but still enables GPL components; review the GPL
+and other dependency requirements before distributing it.

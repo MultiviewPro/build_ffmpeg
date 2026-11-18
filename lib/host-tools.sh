@@ -46,9 +46,11 @@ install_linux_host_tools() {
     frei0r-plugins-dev libgmp-dev libmp3lame-dev libopus-dev libvorbis-dev
     libvpx-dev libx265-dev libsrt-openssl-dev libzvbi-dev libzmq3-dev
     libssh-dev libopenal-dev ocl-icd-opencl-dev libgl-dev libdrm-dev
-    libssl-dev libsmbclient-dev nvidia-cuda-toolkit glslc
+    libssl-dev libsmbclient-dev libvpl-dev
   )
 
+  [[ "$NVIDIA" != 1 ]] || packages+=(nvidia-cuda-toolkit)
+  [[ "$WHISPER_BACKEND" != vulkan ]] || packages+=(glslc)
   local privilege=()
   host_tool_available apt-get || die "Automatic installation requires apt-get; install missing packages using your distribution's package manager (see README.md)"
 
@@ -57,12 +59,12 @@ install_linux_host_tools() {
     privilege=(sudo)
   fi
 
-  printf 'Installing Linux host build dependencies and CUDA toolkit...\n'
+  printf 'Installing Linux host build dependencies...\n'
   "${privilege[@]}" apt-get update || die 'Could not refresh apt package lists; fix the apt/sudo error and rerun the build'
   "${privilege[@]}" apt-get install -y --no-install-recommends "${packages[@]}" || die 'Could not install Linux host dependencies; fix the apt/sudo error and rerun the build'
 
   # Standardize CUDA directory layout for Ubuntu/Debian system paths
-  if [[ ! -d /usr/local/cuda ]]; then
+  if [[ "$NVIDIA" == 1 && ! -d /usr/local/cuda ]]; then
     printf 'Creating standard /usr/local/cuda symlinks for CUDA headers and libraries...\n'
     "${privilege[@]}" mkdir -p /usr/local/cuda
     "${privilege[@]}" ln -s /usr/include /usr/local/cuda/include

@@ -6,7 +6,7 @@
 FFMPEG="$HOME/build/build_ffmpeg/output/linux/bin/ffmpeg"
 FFPROBE="$HOME/build/build_ffmpeg/output/linux/bin/ffprobe"
 "$FFMPEG" -version
-"$FFMPEG" -encoders | grep nvenc
+"$FFMPEG" -encoders | grep -E 'nvenc|qsv'
 "$FFMPEG" -h filter=whisper
 "$FFMPEG" -f lavfi -i testsrc2=size=320x240:rate=25 -t 2 -c:v libx264 /tmp/cpu-test.mp4
 "$FFPROBE" -show_streams /tmp/cpu-test.mp4
@@ -19,6 +19,22 @@ GPU video test, with a compatible NVIDIA driver installed:
 "$FFMPEG" -hwaccel cuda -hwaccel_output_format cuda -i input.mp4 -c:v av1_nvenc -c:a copy output.mkv
 ```
 
+Intel Quick Sync HEVC encoding requires a compatible Intel GPU, graphics driver,
+and Intel media runtime. The oneVPL dispatcher used at build time does not
+itself provide the hardware implementation. Check the encoder and run a test:
+
+```bash
+"$FFMPEG" -hide_banner -encoders | grep hevc_qsv
+"$FFMPEG" -f lavfi -i testsrc2=size=1280x720:rate=30 -t 5 -c:v hevc_qsv /tmp/qsv-hevc.mp4
+"$FFPROBE" -v error -show_entries stream=codec_name -of default=nw=1 /tmp/qsv-hevc.mp4
+```
+
+For an existing video, use `-c:v hevc_qsv`, for example:
+
+```bash
+"$FFMPEG" -i input.mp4 -c:v hevc_qsv -c:a copy output.mp4
+```
+
 ## Windows PowerShell
 
 Copy `ffmpeg.exe`, `ffprobe.exe`, `ffplay.exe` and required dependency DLLs from
@@ -26,10 +42,11 @@ the Windows output directory to Windows, then run from that folder:
 
 ```powershell
 .\ffmpeg.exe -version
-.\ffmpeg.exe -encoders | Select-String nvenc
+.\ffmpeg.exe -encoders | Select-String "nvenc|hevc_qsv"
 .\ffmpeg.exe -hwaccels
 .\ffmpeg.exe -f lavfi -i testsrc2=size=1280x720:rate=30 -t 5 -c:v h264_nvenc gpu-test.mp4
 .\ffprobe.exe -show_streams gpu-test.mp4
+.\ffmpeg.exe -f lavfi -i testsrc2=size=1280x720:rate=30 -t 5 -c:v hevc_qsv qsv-hevc.mp4
 .\ffmpeg.exe -hwaccel cuda -hwaccel_output_format cuda -i input.mp4 -c:v av1_nvenc -c:a copy output.mkv
 ```
 

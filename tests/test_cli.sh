@@ -13,8 +13,6 @@ done
 export PATH="$scratch/bin:$PATH"
 "$project/build.sh" --help > "$scratch/help"
 grep -q 'linux|windows|all' "$scratch/help"
-"$project/build.sh" > "$scratch/no-args"
-cmp "$scratch/help" "$scratch/no-args"
 reject() {
   local expected="$1"; shift
   if "$project/build.sh" "$@" > "$scratch/out" 2>&1; then echo "Unexpected success: $*" >&2; exit 1; fi
@@ -47,11 +45,15 @@ grep -q 'FFmpeg: n9.0.1 (0000000000000000000000000000000000000004)' "$scratch/pl
 grep -q 'whisper.cpp: v1.9.4' "$scratch/plan"
 grep -q 'Vulkan-Headers: vulkan-sdk-1.4.357.0' "$scratch/plan"
 grep -q 'Plan: linux/' "$scratch/plan"
+grep -q -- '--enable-libvpl' "$scratch/plan"
+grep -q 'Install: /bin/ffmpeg' "$scratch/plan"
+PATH="$scratch/bin:$PATH" "$project/build.sh" --plan --whisper off --no-nvidia > "$scratch/default-plan"
+grep -q 'Plan: linux/' "$scratch/default-plan"
 grep -q 'Plan: windows/x86_64' "$scratch/plan"
 [[ ! -d "$BUILD_ROOT/sources" && ! -d "$BUILD_ROOT/build" ]]
 PATH="$scratch/bin:$PATH" "$project/build.sh" linux --whisper off --no-nvidia --plan > "$scratch/minimal"
 if grep -q 'Checking upstream: whisper.cpp\|Checking upstream: nv-codec-headers\|Checking upstream: Vulkan' "$scratch/minimal"; then exit 1; fi
-printf 'PASS: CLI validation, no-argument help, stable tags, annotated tags, matching SDK tags, both target plans, optional dependencies\n'
+printf 'PASS: CLI validation, default target, stable tags, annotated tags, matching SDK tags, both target plans, optional dependencies\n'
 # Exercise installation and publication with mocked compilers/build commands.
 # Catch host paths in configure arguments and DESTDIR/output regressions.
 (
@@ -88,9 +90,13 @@ printf 'PASS: CLI validation, no-argument help, stable tags, annotated tags, mat
       done
     fi
   }
+  install_linux_binaries() { printf "%s\n" "$1" > "$scratch/installed"; }
   build_target linux
+  [[ "$(cat "$scratch/installed")" == "$BUILD_ROOT"/build/linux-*/output/bin ]]
   grep -qx -- '--prefix=/ffmpeg' "$scratch/configure-args"
   grep -qx -- '--enable-ffplay' "$scratch/configure-args"
+  grep -qx -- '--enable-nonfree' "$scratch/configure-args"
+  grep -qx -- '--enable-libfdk-aac' "$scratch/configure-args"
   if grep -F -- "$BUILD_ROOT" "$scratch/configure-args"; then exit 1; fi
   [[ -x "$BUILD_ROOT/output/linux/bin/ffplay" ]]
   [[ ! -f "$BUILD_ROOT/output/linux/config.log" ]]
@@ -153,3 +159,15 @@ if grep -q 'Unexpected upstream' "$scratch/out"; then exit 1; fi
 reject 'cannot be combined' windows --plan --check-deps
 reject 'not valid with clean' clean --check-deps
 printf 'PASS: offline dependency checks, target isolation, early failure and option validation\n'
+# The real installer invokes sudo for each validated executable, with fixed destinations.
+(
+  source "$project/lib/build.sh"
+  LOG="$scratch/install.log"
+  id() { printf '1000\n'; }
+  sudo() { printf '%s\n' "$*" >> "$scratch/install-commands"; }
+  install_linux_binaries "$scratch/staged/bin"
+  for binary in ffmpeg ffprobe ffplay; do
+    grep -Fxq -- "install -m 755 -- $scratch/staged/bin/$binary /bin/$binary" "$scratch/install-commands"
+  done
+)
+printf 'PASS: Linux system installation commands\n'
