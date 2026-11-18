@@ -3,7 +3,7 @@
 # Supplementary sources are pinned to commits, not moving branches/tags.
 MXE_COMMIT=215428bf6f9c4e634f2fb827849a9c027dfe950a
 MXE_TARGET=x86_64-w64-mingw32.static
-MXE_PACKAGES=(cc cmake libass freetype fontconfig fribidi harfbuzz
+MXE_PACKAGES=(cc cmake zlib libass freetype fontconfig fribidi harfbuzz
   libcaca gmp lame opus vorbis libvpx x265 libssh openal openssl sdl2 libpng libiconv)
 WINDOWS_EXTRA_NAMES=(aom srt svtjpegxs zvbi frei0r vmaf opencl-headers opencl-loader zmq onevpl)
 declare -A WINDOWS_EXTRA_URL=(

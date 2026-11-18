@@ -79,7 +79,7 @@ printf 'PASS: CLI validation, default target, stable tags, annotated tags, match
         flag="${flag#--enable-}"; flag="${flag//-/_}"
         printf '#define CONFIG_%s 1\n' "${flag^^}" >> config.h
       done
-      touch config_components.h
+      printf '#define CONFIG_PNG_ENCODER 1\n' > config_components.h
     elif [[ "$1" == make && "${2:-}" == DESTDIR=* ]]; then
       [[ "$2" == "DESTDIR=$root/stage" ]]
       mkdir -p "$root/stage/ffmpeg/bin"
@@ -93,6 +93,8 @@ printf 'PASS: CLI validation, default target, stable tags, annotated tags, match
   install_linux_binaries() { printf "%s\n" "$1" > "$scratch/installed"; }
   build_target linux
   [[ "$(cat "$scratch/installed")" == "$BUILD_ROOT"/build/linux-*/output/bin ]]
+  grep -qx -- '--enable-zlib' "$scratch/configure-args"
+  grep -qx -- '--enable-encoder=png' "$scratch/configure-args"
   grep -qx -- '--prefix=/ffmpeg' "$scratch/configure-args"
   grep -qx -- '--enable-ffplay' "$scratch/configure-args"
   grep -qx -- '--enable-nonfree' "$scratch/configure-args"

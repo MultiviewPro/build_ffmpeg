@@ -125,7 +125,7 @@ feature_flags() {
     --enable-libopus --enable-libvorbis --enable-libvpx --enable-libx264
     --enable-libx265 --enable-libsrt --enable-libsvtjpegxs --enable-libzvbi
     --enable-libzmq --enable-libssh --enable-openal --enable-opencl
-    --enable-opengl --enable-libvmaf --enable-libvpl)
+    --enable-opengl --enable-libvmaf --enable-libvpl --enable-zlib)
     ## --enable-libmp3lame
   if [[ "$1" == linux ]]; then
     FEATURE_FLAGS+=(--enable-nonfree --enable-libfdk-aac --enable-libdrm --enable-libsmbclient --enable-openssl)
@@ -168,7 +168,7 @@ preflight_target() (
 
 check_external_dependencies() {
   local package
-  local packages=(aom libass freetype2 fontconfig fribidi harfbuzz
+  local packages=(zlib aom libass freetype2 fontconfig fribidi harfbuzz
     caca frei0r gmp opus vorbis vorbisenc vpx x265 srt 'SvtJpegxs >= 0.10.0'
     zvbi-0.2 libzmq libssh openal OpenCL openssl libvmaf 'sdl2 >= 2.0.1' 'sdl2 < 3.0.0' vpl)
   [[ "$target" != linux ]] || packages+=(fdk-aac libdrm smbclient)
@@ -313,6 +313,7 @@ build_target() (
   run "${SOURCE[FFmpeg]}/configure" --prefix=/ffmpeg \
     --pkg-config=pkg-config --pkg-config-flags=--static "--extra-libs=$runtime_libs" \
     --disable-autodetect --enable-static --disable-shared --disable-doc --disable-debug \
+    --enable-encoder=png \
     "${FEATURE_FLAGS[@]}" \
     "${target_flags[@]}" "${gpu_flags[@]}" "${whisper_flags[@]}"
   local feature
@@ -322,6 +323,7 @@ build_target() (
     feature="${feature//-/_}"
     grep -qx "#define CONFIG_${feature^^} 1" config.h || die "Requested feature not enabled: $feature"
   done
+  grep -qx "#define CONFIG_PNG_ENCODER 1" config_components.h || die "Requested PNG encoder not enabled"
   run make -j"$JOBS"
   run make DESTDIR="$root/stage" install
   cp -a "$root/stage/ffmpeg/." "$output/"

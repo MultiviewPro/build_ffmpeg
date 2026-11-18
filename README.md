@@ -158,7 +158,8 @@ A Whisper model is a separate download. See [GPU tests and transcription](docs/u
 The common configuration enables aom, ass, freetype, fontconfig,
 fribidi, harfbuzz, caca, frei0r, GMP, mp3lame, opus, vorbis, vpx, x264,
 x265, SRT, SVT-JPEG-XS, zvbi, zmq, ssh, OpenAL, OpenCL, OpenGL, OpenSSL,
-VMAF, Intel oneVPL/QSV, swresample and SDL2/ffplay, plus GPL and version3. Linux also enables nonfree and FDK AAC.
+VMAF, Intel oneVPL/QSV, zlib (including PNG encoding), swresample and
+SDL2/ffplay, plus GPL and version3. Linux also enables nonfree and FDK AAC.
 Whisper remains enabled by default, with the existing CPU/off overrides.
 Missing dependencies cause a build failure; features are not silently dropped.
 

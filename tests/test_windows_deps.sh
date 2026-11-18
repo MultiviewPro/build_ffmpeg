@@ -84,7 +84,7 @@ printf 'PASS: automatic Windows bootstrap, resume cache, failed-step retry, pref
         flag="${flag#--enable-}"; flag="${flag//-/_}"
         printf '#define CONFIG_%s 1\n' "${flag^^}" >> config.h
       done
-      touch config_components.h
+      printf '#define CONFIG_PNG_ENCODER 1\n' > config_components.h
     elif [[ "$1" == make && "${2:-}" == DESTDIR=* ]]; then
       mkdir -p "$root/stage/ffmpeg/bin"
       touch "$root/stage/ffmpeg/bin/"{ffmpeg,ffprobe,ffplay}.exe
@@ -92,6 +92,8 @@ printf 'PASS: automatic Windows bootstrap, resume cache, failed-step retry, pref
   }
   build_target windows
   grep -qx -- "--cross-prefix=$MXE_TARGET-" "$scratch/windows-configure"
+  grep -qx -- '--enable-zlib' "$scratch/windows-configure"
+  grep -qx -- '--enable-encoder=png' "$scratch/windows-configure"
   grep -qx -- '--prefix=/ffmpeg' "$scratch/windows-configure"
   grep -qx -- '--enable-libvpl' "$scratch/windows-configure"
   if grep -qxE -- '--enable-(nonfree|libfdk-aac)' "$scratch/windows-configure"; then exit 1; fi
